@@ -10,30 +10,78 @@ const filesToCopy = ['util.js', 'errors.js', 'proto-def.js'];
 const input = join('node_modules', 'rethinkdb')
 const output = 'lib';
 
-const removeNetReferences = replacements => (node, meta) => {
+const isVar = name => node => (
+  node.type === 'VariableDeclarator' &&
+  node.id.name === name
+);
+
+const isAssignment = name => node => (
+  node.type === 'AssignmentExpression' &&
+  node.left.name === name
+);
+
+
+// Remove Net
+const isNetVariableDeclaration = isVar('net');
+const isNetAssignment = isAssignment('net');
+
+const isTermBase$Run = node => (
+  node.type === 'AssignmentExpression' &&
+  node.left.type === 'MemberExpression' &&
+  node.left.object.type === 'MemberExpression' &&
+  node.left.object.object.name === 'TermBase' &&
+  node.left.object.property.name === 'prototype' &&
+  node.left.property.type === 'Identifier' &&
+  node.left.property.name === 'run'
+);
+
+// Remove Binary/Buffer
+const isBinaryVariableDeclaration = isVar('Binary');
+const isBinaryAssignment = isAssignment('Binary');
+
+const isBufferTest = node => (
+  node.type === 'BinaryExpression' &&
+  node.operator === 'instanceof' &&
+  node.left.name === 'val' &&
+  node.right.name === 'Buffer'
+);
+
+const isBinaryHelperAssignemnt = node => (
+  node.type === 'AssignmentExpression' &&
+  node.left.type === 'MemberExpression' &&
+  node.left.object.name === 'rethinkdb' &&
+  node.left.property.name === 'binary'
+);
+
+const isReturnNewBinary = node => (
+  node.type === 'ReturnStatement' &&
+  node.argument.type === 'NewExpression' &&
+  node.argument.callee.type === 'Identifier' &&
+  node.argument.callee.name === 'Binary' &&
+  node.argument.arguments[0].name === 'val'
+);
+
+// Remove Promise/Bluebird
+const isPromiseDeclaration = isVar('Promise');
+const isPromiseAssignment = isAssignment('Promise');
+
+
+const cleanup = replacements => (node, meta) => {
   if (
-    node.type === 'VariableDeclarator' &&
-    node.id.name === 'net'
-  ) {
-    // Remove variable declaration
-    replacements.push([meta.start.offset, meta.end.offset + 1])
-  } else if (
-    // remove assignment
-    node.type === 'AssignmentExpression' &&
-    node.left.name === 'net'
-  ){
-    replacements.push([meta.start.offset, meta.end.offset + 1])
-  } else if (
-    // remove usage on TermBase.prototype.run()
-    node.type === 'AssignmentExpression' &&
-    node.left.type === 'MemberExpression' &&
-    node.left.object.type === 'MemberExpression' &&
-    node.left.object.object.name === 'TermBase' &&
-    node.left.object.property.name === 'prototype' &&
-    node.left.property.type === 'Identifier' &&
-    node.left.property.name === 'run'
+    isNetVariableDeclaration(node) ||
+    isNetAssignment(node) ||
+    isTermBase$Run(node) ||
+    isBinaryVariableDeclaration(node) ||
+    isBinaryAssignment(node) ||
+    isBinaryHelperAssignemnt(node) ||
+    isPromiseDeclaration(node) ||
+    isPromiseAssignment(node)
   ) {
     replacements.push([meta.start.offset, meta.end.offset + 1])
+  } else if (isBufferTest(node)) {
+    replacements.push([meta.start.offset, meta.end.offset, 'false'])
+  } else if (isReturnNewBinary(node)) {
+    replacements.push([meta.start.offset, meta.end.offset, 'throw new err.ReqlDriverCompileError("This should never happen.");'])
   }
 }
 
@@ -43,13 +91,13 @@ async function rewriteAst() {
   const source = buffer.toString();
 
   const replacements = [];
-  esprima.parse(source, {}, removeNetReferences(replacements));
+  esprima.parse(source, {}, cleanup(replacements));
 
   let source2 = source;
   replacements
     .sort(([_1, a], [_2, b]) => b - a)
-    .forEach(([a, b]) => {
-      source2 = source2.slice(0, a) + source2.slice(b);
+    .forEach(([a, b, repl = '']) => {
+      source2 = source2.slice(0, a) + repl + source2.slice(b);
     });
 
   return Promise.promisify(fs.writeFile)(join(output, fileName), source2);

@@ -2,14 +2,22 @@
 
 This package is a subset officially supported JavaScript
 [rethinkdb driver](https://github.com/rethinkdb/rethinkdb) for querying
-a RethinkDB database from a JavaScript application. It does not include
-any _network connectiviy_ parts of the standard driver, and the `rethinkdb`
-object will not have a `run()` method defined on them. Instead, this is meant
-to be used to build/generate a query AST using the `build()` method.
+a RethinkDB database from a JavaScript application.
 
 Check out
 [rethinkdb.com/api/javascript](http://www.rethinkdb.com/api/javascript)
 for documentation and examples of using the official driver.
+
+## Whats Missing?
+
+This package does not include:
+
+- _Network Connectivity_
+- `run()` method to execute a expression to a server
+- `r.binary()` helpers.
+
+Instead, this is meant to be used to build/generate a expression/query AST
+using the `build()` method.
 
 ## Building
 
