@@ -1,7 +1,7 @@
 {
   "name": "reconsiderdb-ast",
   "version": "2.3.3",
-  "description": "just the AST part of rethinkdb client driver",
+  "description": "just the expression builder of rethinkdb client driver",
   "main": "lib/ast.js",
   "devDependencies": {
     "babel-cli": "^6.24.1",
