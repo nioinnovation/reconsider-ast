@@ -65,7 +65,6 @@ const isReturnNewBinary = node => (
 const isPromiseDeclaration = isVar('Promise');
 const isPromiseAssignment = isAssignment('Promise');
 
-
 const cleanup = replacements => (node, meta) => {
   if (
     isNetVariableDeclaration(node) ||
