@@ -1,5 +1,5 @@
 {
-  "name": "reconsiderdb-ast",
+  "name": "zenith-ast",
   "version": "2.3.3",
   "description": "just the expression builder of rethinkdb client driver",
   "main": "lib/ast.js",
