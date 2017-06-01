@@ -1,4 +1,4 @@
-# reconsiderdb-ast
+# @nio/zenith-ast
 
 This package is a subset officially supported JavaScript
 [rethinkdb driver](https://github.com/rethinkdb/rethinkdb) for querying

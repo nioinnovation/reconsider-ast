@@ -1,5 +1,5 @@
 {
-  "name": "zenith-ast",
+  "name": "@nio/zenith-ast",
   "version": "2.3.3",
   "description": "just the expression builder of rethinkdb client driver",
   "main": "lib/ast.js",
@@ -20,6 +20,6 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nioinnovation/zenith-ast"
+    "url": "https://github.com/nioinnovation/zenith-ast.git"
   }
 }
